@@ -1,19 +1,20 @@
 const fs = require("fs");
 const prompt = require('prompt-sync')();
+require('dotenv').config()
 const processAttr = process.argv[2];
 let componentNamesArray = []
 const SUFFIX = "Component";
-let applicationType = ''
-let applicationStyle = ''
 let componentName = ''
-
-if (processAttr.includes('--reset')){
-    fs.unlink('./settings.txt',()=>{})
+let cliSettings = {typeOfProject: '', typeOfStyle: ''}
+const cliPath = process.env.RCC_PATH
+if (processAttr.includes('--reset')) {
+    fs.unlink(`${cliPath}/settings.json`, () => {
+    })
     console.log(
         "\x1b[36m%s\x1b[0m",
         `RCC successfully reset`
     );
-}else{
+} else {
     componentNamesArray = processAttr.split("-");
     componentName = componentNamesArray
         .toString()
@@ -22,7 +23,6 @@ if (processAttr.includes('--reset')){
         .join("") + SUFFIX;
     rcc()
 }
-
 
 
 function createComponentFolder() {
@@ -40,7 +40,7 @@ function createComponentFolder() {
 }
 
 function createComponentStyle() {
-    fs.appendFile(`./${processAttr}/${processAttr}.component${applicationType === 'NEXT' ? '.module' : ''}.${applicationStyle.toLowerCase()}`, ``, () => {
+    fs.appendFile(`./${processAttr}/${processAttr}.component${cliSettings.typeOfProject === 'NEXT' ? '.module' : ''}.${cliSettings.typeOfStyle.toLowerCase()}`, ``, () => {
         createComponentProps();
     });
 }
@@ -82,9 +82,12 @@ function setDefaultSettings() {
     const typeOfProject = applicationTypeInput === '1' ? 'REACT' : 'NEXT'
     const typeOfStyle = getStyleDependsOnInput(styleTypeInput)
 
-    applicationType = typeOfProject
-    applicationStyle = typeOfStyle
-    fs.appendFile('./settings.txt', `${typeOfProject} ${typeOfStyle}`, () => {
+    const cliSettings = {
+        typeOfProject, typeOfStyle
+    }
+
+
+    fs.appendFile(`${cliPath}/settings.json`, JSON.stringify(cliSettings), () => {
         console.log(
             "\x1b[36m%s\x1b[0m",
             `Settings has been saved to settings.txt`
@@ -106,18 +109,14 @@ function getStyleDependsOnInput(input) {
     }
 }
 
-function rcc(){
-    fs.readdir('./', (err, files) => {
-        const hasSettings = files.includes('settings.txt')
+function rcc() {
+    fs.readdir(`${cliPath}`, (err, files) => {
+        const hasSettings = files.includes('settings.json')
         if (!hasSettings) {
             setDefaultSettings()
             createComponentFolder();
         } else {
-            const settings = fs.readFileSync('./settings.txt', 'utf8')
-            const splitSettings = settings.split(" ")
-            applicationStyle = splitSettings[1]
-            applicationType = splitSettings[0]
-
+            cliSettings = JSON.parse(fs.readFileSync(`${cliPath}settings.json`, 'utf8'))
             createComponentFolder();
 
         }
