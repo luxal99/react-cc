@@ -82,7 +82,7 @@ function setDefaultSettings() {
     const typeOfProject = applicationTypeInput === '1' ? 'REACT' : 'NEXT'
     const typeOfStyle = getStyleDependsOnInput(styleTypeInput)
 
-    const cliSettings = {
+    cliSettings = {
         typeOfProject, typeOfStyle
     }
 
